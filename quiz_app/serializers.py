@@ -57,3 +57,18 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
         instance.set_password(new_password)
         instance.save()
         return instance
+    
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField()
+    confirm_password = serializers.CharField(validators=[validate_password])
+
+    def validate(self, attrs):
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError("Password doesn't match")
+        return attrs

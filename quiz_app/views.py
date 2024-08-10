@@ -1,6 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
-from .serializers import UserRegisterSerializer,UserLoginSerializer,ChangePasswordSerializer
+from django.shortcuts import get_object_or_404
+from .serializers import UserRegisterSerializer,UserLoginSerializer,ChangePasswordSerializer,PasswordResetRequestSerializer,PasswordResetSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -9,9 +10,13 @@ from rest_framework import status
 from .utils import generate_otp,send_email
 from .models.otp import otp_class
 from .models.user import User
+from .models.reset_password import request_reset_password_class
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
 
 
@@ -20,7 +25,7 @@ from django.utils.translation import gettext_lazy as _
 def register_user(request):
     otp_expiry=timezone.now() + timedelta(minutes=5) #expires in 5 minute
     serializer = UserRegisterSerializer(data=request.data)
-    if serializer.is_valid():
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
         user=serializer.data
         otp_generated=generate_otp()
@@ -95,3 +100,43 @@ def change_password(request):
         return Response({'message': 'Change Password Succesfully.'}, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def request_reset_password(request):
+    serializer = PasswordResetRequestSerializer(data = request.data)
+    if serializer.is_valid(raise_exception=True):
+        email = serializer.data['email']
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        token_generator = PasswordResetTokenGenerator()
+        token = token_generator.make_token(user)
+        token_expiry = timezone.now() + timedelta(minutes=5) #expires in 5 minute
+        token_object = request_reset_password_class.objects.create(user_id=user.id,token=token,token_expiry=token_expiry)
+        token_object.save()
+        encoded_pk = urlsafe_base64_encode(force_bytes(user.pk))
+        resetpassword_url = f"resetpassword/{encoded_pk}/{token}"
+        print(resetpassword_url)
+        return Response(status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+def reset_password(request,uid64,token):
+    serializer = PasswordResetSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        pk = urlsafe_base64_decode(uid64)
+        try:
+            reset_password_object = request_reset_password_class.objects.get(token=token,user_id=pk)
+        except request_reset_password_class.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        if not reset_password_object:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            user = User.objects.get(id=pk)
+            user.set_password(serializer.data['new_password'])
+            user.save()
+            return Response(status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
