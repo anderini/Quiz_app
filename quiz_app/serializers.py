@@ -13,7 +13,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
   
-class UserLoginSerializer(serializers.Serializer):
+class UserLoginSerializer(serializers.ModelSerializer):
     password=serializers.CharField()
     username=serializers.CharField()
     email=serializers.EmailField()
@@ -22,7 +22,10 @@ class UserLoginSerializer(serializers.Serializer):
         model=User
         fields=['email','password','username','id',]
 
-class ChangePasswordSerializer(serializers.Serializer):
+    def create(self,validated_data):
+        raise NotImplementedError(".")
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
     old_password=serializers.CharField()
     new_password=serializers.CharField(validators=[validate_password])
     confirm_password=serializers.CharField()
@@ -45,3 +48,12 @@ class ChangePasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError("Mevcut şifre geçersiz.")
         
         return attrs
+    
+    def create(self,validated_data):
+        raise NotImplementedError(".")
+    
+    def update(self,instance ,validated_data):
+        new_password = validated_data.get('new_password')
+        instance.set_password(new_password)
+        instance.save()
+        return instance

@@ -90,10 +90,8 @@ def get_user(request):
 def change_password(request):
     serializer = ChangePasswordSerializer(data=request.data, context={'request':request})
     if serializer.is_valid(raise_exception=True):
-        user = request.user
-        new_password = serializer.validated_data['new_password']
-        user.set_password(new_password)
-        user.save()
+        serializer.instance = request.user
+        serializer.save() #ChangePasswordSerializer icindeki update metodunu cagirmak icin
         return Response({'message': 'Change Password Succesfully.'}, status=status.HTTP_200_OK)
     else:
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
