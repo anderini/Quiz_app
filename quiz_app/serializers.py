@@ -72,3 +72,17 @@ class PasswordResetSerializer(serializers.Serializer):
         if new_password != confirm_password:
             raise serializers.ValidationError("Password doesn't match")
         return attrs
+    
+class DeleteUserSerializer(serializers.Serializer):
+    password = serializers.CharField()
+    confirm_password = serializers.CharField()
+     
+    def validate(self, attrs):
+        password = attrs.get('password')
+        confirm_password = attrs.get('confirm_password')
+        user = self.context['request'].user
+        if not user.check_password(password):
+            raise serializers.ValidationError("Mevcut şifre geçersiz.")
+        if password != confirm_password:
+            raise serializers.ValidationError("Password doesn't match")
+        return attrs

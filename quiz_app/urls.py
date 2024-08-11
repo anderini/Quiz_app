@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import register_user,verify_user,login_user,manual_token_refresh,get_user,change_password,request_reset_password,reset_password,logout_user
+from .views import register_user,verify_user,login_user,manual_token_refresh,get_user,change_password,request_reset_password,reset_password,logout_user,delete_user
 
 urlpatterns = [
     path('register', register_user,name='register'),
@@ -11,4 +11,6 @@ urlpatterns = [
     path('requestresetpassword', request_reset_password,name='request reset password'),
     path('resetpassword/<uid64>/<token>', reset_password,name='password reset'),
     path('logout', logout_user,name='logout'),
+    path('deleteuser', delete_user,name='delete user'),
+
 ]

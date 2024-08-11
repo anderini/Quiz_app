@@ -1,7 +1,7 @@
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
-from .serializers import UserRegisterSerializer,UserLoginSerializer,ChangePasswordSerializer,PasswordResetRequestSerializer,PasswordResetSerializer
+from .serializers import UserRegisterSerializer,UserLoginSerializer,ChangePasswordSerializer,PasswordResetRequestSerializer,PasswordResetSerializer,DeleteUserSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,authentication_classes,permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -17,6 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
 from django.utils.translation import gettext_lazy as _
 
 
@@ -152,3 +153,17 @@ def logout_user(request):
         return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_user(request):
+    serializer = DeleteUserSerializer(data=request.data, context={'request':request})
+    if serializer.is_valid(raise_exception=True):
+        user = request.user
+        user.delete()
+        refresh_token = request.data['refresh']
+        token = RefreshToken(refresh_token)
+        token.blacklist()  # Token'ı geçersiz kıl
+        return Response(status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
