@@ -3,12 +3,21 @@ from .models.user import User
 from django.contrib.auth.password_validation import validate_password
 from django.core import validators
 from rest_framework.exceptions import AuthenticationFailed
+import forbidden_words
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password=serializers.CharField(validators=[validate_password])
     class Meta:
         model=User
-        fields=['email','password','username','id']      
+        fields=['email','password','username','id']  
+    def validate(self, attrs):
+        username = attrs.get('username')
+        if ' ' in username:
+            raise serializers.ValidationError("Invalid Username")
+        for i in forbidden_words.words:
+            if i in username:
+                raise serializers.ValidationError("Username Contains Forbidden Word")
+        return attrs
     def create(self,validated_data):
         user = User.objects.create_user(**validated_data)
         return user
