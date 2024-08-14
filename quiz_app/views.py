@@ -18,8 +18,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.translation import gettext_lazy as _
-#asdasda
-#asdasdasdasd
+
 # Create your views here.
 @api_view(['POST'])
 def register_user(request):
@@ -31,7 +30,7 @@ def register_user(request):
         otp_generated=generate_otp()
         otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
         send_email(email=user['email'],otp=otp_generated)
-        return Response({"otp":otp_generated})
+        return Response({"otp":otp_generated,"user_id":user['id']})
     else:
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
