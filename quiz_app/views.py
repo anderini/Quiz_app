@@ -17,7 +17,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from rest_framework_simplejwt.tokens import OutstandingToken, BlacklistedToken
 from django.utils.translation import gettext_lazy as _
 
 
@@ -78,18 +77,6 @@ def manual_token_refresh(request):
         })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user(request):
-    user = request.user
-    return Response({
-        'message': 'Access granted',
-        'user': {
-            'username': user.username,
-            'email': user.email
-        }
-    })
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
