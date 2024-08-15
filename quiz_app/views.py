@@ -17,6 +17,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 # Create your views here.
@@ -24,15 +25,17 @@ from django.utils.translation import gettext_lazy as _
 def register_user(request):
     otp_expiry=timezone.now() + timedelta(minutes=5) #expires in 5 minute
     serializer = UserRegisterSerializer(data=request.data)
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
-        user=serializer.data
-        otp_generated=generate_otp()
-        otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
-        send_email(email=user['email'],otp=otp_generated)
-        return Response({"otp":otp_generated,"user_id":user['id']})
-    else:
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    try:
+        serializer.is_valid(raise_exception=True)
+    except ValidationError as exc:
+        exc.detail['status'] = False
+        raise exc
+    serializer.save()
+    user=serializer.data
+    otp_generated=generate_otp()
+    otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
+    send_email(email=user['email'],otp=otp_generated)
+    return Response({"otp":otp_generated,"user_id":user['id'],"status":True})
     
 @api_view(['POST'])
 def verify_user(request):
