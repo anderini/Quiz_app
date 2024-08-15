@@ -43,7 +43,9 @@ def verify_user(request):
         otp_class.objects.filter(user_id=user_id).delete()
         return Response(status=status.HTTP_200_OK)
     else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        User.objects.filter(id=user_id).delete()
+        otp_class.objects.filter(user_id=user_id).delete()
+        return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 def login_user(request):
