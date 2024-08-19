@@ -2,18 +2,50 @@ from rest_framework import serializers
 from .models.user import User
 from django.contrib.auth.password_validation import validate_password
 from django.core import validators
+from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework.exceptions import AuthenticationFailed
+from django.utils.translation import gettext_lazy as _
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password=serializers.CharField(validators=[validate_password])
     class Meta:
         model=User
-        fields=['email','password','username','id']  
-    def validate(self, attrs):
-        username = attrs.get('username')
-        if ' ' in username:
-            raise serializers.ValidationError("Invalid Username")
-        return attrs
+
+        extra_kwargs = {
+            "username":{
+                "error_messages": {
+                    "max_length": _('Kullanıcı adı 15 karakterden büyük olamaz!'),"blank":"Kullanıcı adı kısmı boş bırakılamaz!"
+                },
+                "validators": [
+                    MinLengthValidator(4, message=_('Kullanıcı adı en az 4 karakter olmalıdır!')),
+                    MaxLengthValidator(15, message=_('Kullanıcı adı 15 karakterden büyük olamaz!')),
+                ]
+            },    
+            "email": {
+                "error_messages": {
+                    "blank":"Email kısmı boş bırakılamaz!"
+                }
+            },
+            "password": {
+                'write_only': True,
+                'validators': [
+                    MinLengthValidator(8, message=_('Parola en az 8 karakter olmalıdır!')),
+                    MaxLengthValidator(128, message=_('Parola en fazla 128 karakter olabilir!')),
+                ],
+                'error_messages': {
+                    'blank': 'Parola kısmı boş bırakılamaz!',
+                }
+            }
+        }
+
+        fields=['email','password','username','id']
+    def validate_password(self, value):
+        if value.isdigit():
+            raise serializers.ValidationError(_('Parola tamamen sayılardan oluşamaz!'))
+        return value
+    def validate_username(self, value):
+        if ' ' in value:
+            raise serializers.ValidationError(_("Kullanıcı adı boşluk karateri içeremez!"))
+        return value    
     def create(self,validated_data):
         user = User.objects.create_user(**validated_data)
         return user
