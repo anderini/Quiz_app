@@ -1,9 +1,8 @@
 from rest_framework import serializers
 from .models.user import User
 from django.contrib.auth.password_validation import validate_password
-from django.core import validators
 from django.core.validators import MinLengthValidator, MaxLengthValidator
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.validators import UniqueValidator
 from django.utils.translation import gettext_lazy as _
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -13,17 +12,28 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "username":{
                 "error_messages": {
-                    "max_length": _('Kullanıcı adı 15 karakterden büyük olamaz!'),"blank":"Kullanıcı adı kısmı boş bırakılamaz!"
+                    "max_length": _('Kullanıcı adı 15 karakterden büyük olamaz!'),
+                    "blank":"Kullanıcı adı kısmı boş bırakılamaz!",
                 },
                 "validators": [
                     MinLengthValidator(4, message=_('Kullanıcı adı en az 4 karakter olmalıdır!')),
                     MaxLengthValidator(15, message=_('Kullanıcı adı 15 karakterden büyük olamaz!')),
+                    UniqueValidator(
+                            queryset=User.objects.all(),
+                            message=_("Bu kullanıcı adı zaten alınmış. Lütfen başka bir kullanıcı adı seçin.")
+                    )
                 ]
             },    
             "email": {
                 "error_messages": {
                     "blank":"Email kısmı boş bırakılamaz!"
-                }
+                },
+                "validators": [
+                    UniqueValidator(
+                            queryset=User.objects.all(),
+                            message=_("Bu email zaten kullanılıyor. Lütfen başka bir email kullanın.")
+                    )
+                ]
             },
             "password": {
                 'write_only': True,

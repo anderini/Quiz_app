@@ -95,9 +95,9 @@ DATABASES = {
 AUTH_USER_MODEL="quiz_app.User"
 REST_FRAMEWORK = {  
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )   
+    ),
+    'EXCEPTION_HANDLER': 'quiz_app.exception_handler.custom_exception_handler',
 }
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

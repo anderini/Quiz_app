@@ -25,17 +25,13 @@ from django.utils.translation import gettext_lazy as _
 def register_user(request):
     otp_expiry=timezone.now() + timedelta(minutes=5) #expires in 5 minute
     serializer = UserRegisterSerializer(data=request.data)
-    try:
-        serializer.is_valid(raise_exception=True)
-    except ValidationError as exc:
-        exc.detail['status'] = False
-        raise exc
-    serializer.save()
-    user=serializer.data
-    otp_generated=generate_otp()
-    otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
-    send_email(email=user['email'],otp=otp_generated)
-    return Response({"otp":otp_generated,"user_id":user['id'],"status":True,"message":"Başarıyla Kayıt Olundu."})
+    if serializer.is_valid(raise_exception=True):
+        serializer.save()
+        user=serializer.data
+        otp_generated=generate_otp()
+        otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
+        send_email(email=user['email'],otp=otp_generated)
+        return Response({"otp":otp_generated,"user_id":user['id'],"status":True,"message":"Başarıyla Kayıt Olundu."})
     
 @api_view(['POST'])
 def verify_user(request):
