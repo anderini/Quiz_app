@@ -35,7 +35,7 @@ def register_user(request):
     otp_generated=generate_otp()
     otp_class.objects.create(otp=otp_generated,user_id=user['id'],otp_expiry=otp_expiry)
     send_email(email=user['email'],otp=otp_generated)
-    return Response({"otp":otp_generated,"user_id":user['id'],"status":True})
+    return Response({"otp":otp_generated,"user_id":user['id'],"status":True,"message":"Başarıyla Kayıt Olundu."})
     
 @api_view(['POST'])
 def verify_user(request):
