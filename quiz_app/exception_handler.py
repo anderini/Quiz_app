@@ -14,8 +14,8 @@ def custom_exception_handler(exc, context):
         response.data = {
             'message': messsage,
             'status': False,
-            'otp': " ",
-            'userID': " ",
+            'otp': "",
+            'userID': -1,
         }
 
     return response
