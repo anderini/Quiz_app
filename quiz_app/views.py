@@ -35,15 +35,11 @@ def register_user(request):
     
 @api_view(['POST'])
 def verify_user(request):
-    is_match = request.data['is_match']
-    user_id = request.data['id']
-    if is_match == True:
-        User.objects.filter(id=user_id).update(is_validate=True)
-        otp_class.objects.filter(user_id=user_id).delete()
-        return Response(status=status.HTTP_200_OK)
-    else:
-        User.objects.filter(id=user_id).delete()
-        otp_class.objects.filter(user_id=user_id).delete()
+    isMatch = request.data['isMatch']
+    userID = request.data['userID']
+    if isMatch == True:
+        User.objects.filter(id=userID).update(is_validate=True)
+        otp_class.objects.filter(user_id=userID).delete()
         return Response(status=status.HTTP_200_OK)
 
 @api_view(['POST'])
