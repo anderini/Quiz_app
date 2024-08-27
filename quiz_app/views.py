@@ -41,7 +41,7 @@ def verify_user(request):
         user = User.objects.get(id=userID)
         User.objects.filter(id=userID).update(is_validate=True)
         otp_class.objects.filter(user_id=userID).delete()
-        return Response({"userID":userID,"password":user.password,"username":user.username,"email":user.email,"createdAt":user.createdAt,"lastOnlineAt":user.lastOnlineAt})
+        return Response({"status":True})
     else:
         return Response({"status":False})
 
