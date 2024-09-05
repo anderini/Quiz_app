@@ -9,7 +9,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     username = models.CharField(_("username"), max_length=15,unique=True)
     email = models.EmailField(_("email"),unique=True)
     is_superuser = models.BooleanField(_("is_superuser"),default=False)
-    is_validate = models.BooleanField(_("is_validate"),default=False)
+    is_verified = models.BooleanField(_("is_verified"),default=False)
     is_staff = models.BooleanField(_("is_staff"),default=False)
     createdAt = models.DateTimeField(_(""), auto_now=False, auto_now_add=True)
     lastOnlineAt = models.DateTimeField(_(""), auto_now=True, auto_now_add=False)

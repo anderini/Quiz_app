@@ -38,8 +38,7 @@ def verify_user(request):
     isMatch = request.data['isMatch']
     userID = request.data['userID']
     if isMatch == True:
-        user = User.objects.get(id=userID)
-        User.objects.filter(id=userID).update(is_validate=True)
+        User.objects.filter(id=userID).update(is_verified=True)
         otp_class.objects.filter(user_id=userID).delete()
         return Response({"status":True})
     else:
@@ -49,20 +48,24 @@ def verify_user(request):
 def login_user(request):
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid(raise_exception=True):
-        user = authenticate(username=serializer.data['username'],password=serializer.data['password'])
+        user = authenticate(username=serializer.validated_data.get('username'),password=serializer.validated_data.get('password'))
         if not user:
-           raise AuthenticationFailed("authentication failed!!")
+            return Response({"status":False,"message":"Kullanıcı Adı veya Şifre Yanlış."})
         else:
-            if user.is_validate != 1:
-                raise AuthenticationFailed("email not verified!!")
+            if not getattr(user, 'is_verified', False):
+                return Response({"status":False,"message":"Onaylanmamış Email Adresi."})
             else:
                 token=user.tokens()
                 return Response({
-                    "access_token":str(token.get('access')),
-                    "refresh_token":str(token.get('refresh')),
+                    "accessToken":str(token.get('access')),
+                    "refreshToken":str(token.get('refresh')),
+                    "userID":user.pk,
+                    "username":user.username,
+                    "password":user.password,
+                    "email":user.email,
+                    "createdAt":user.createdAt,
+                    "lastOnlineAt":user.lastOnlineAt,
                 })
-    else:
-        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['POST'])
 def manual_token_refresh(request):

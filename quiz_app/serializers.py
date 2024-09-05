@@ -3,6 +3,7 @@ from .models.user import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -61,21 +62,22 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
   
 class UserLoginSerializer(serializers.ModelSerializer):
-    password=serializers.CharField()
-    username=serializers.CharField()
-    email=serializers.EmailField()
-
+    password=serializers.CharField(write_only=True,error_messages={
+        'blank': 'Şifre Boş Bırakılamaz.',
+    })
+    username=serializers.CharField(error_messages={
+        'blank': 'Kullanıcı Adı Boş Bırakılamaz.',
+    })
     class Meta:
         model=User
-        fields=['email','password','username','id',]
-
+        fields=['password','username','id']
     def create(self,validated_data):
         raise NotImplementedError(".")
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
-    old_password=serializers.CharField()
-    new_password=serializers.CharField(validators=[validate_password])
-    confirm_password=serializers.CharField()
+    old_password=serializers.CharField(write_only=True)
+    new_password=serializers.CharField(validators=[validate_password],write_only=True)
+    confirm_password=serializers.CharField(write_only=True)
 
     class Meta:
         model=User
@@ -109,8 +111,8 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 class PasswordResetSerializer(serializers.Serializer):
-    new_password = serializers.CharField()
-    confirm_password = serializers.CharField(validators=[validate_password])
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(validators=[validate_password],write_only=True)
 
     def validate(self, attrs):
         new_password = attrs.get('new_password')
@@ -121,8 +123,8 @@ class PasswordResetSerializer(serializers.Serializer):
         return attrs
     
 class DeleteUserSerializer(serializers.Serializer):
-    password = serializers.CharField()
-    confirm_password = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
      
     def validate(self, attrs):
         password = attrs.get('password')
