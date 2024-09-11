@@ -3,7 +3,6 @@ from .models.user import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
 
 class UserRegisterSerializer(serializers.ModelSerializer):

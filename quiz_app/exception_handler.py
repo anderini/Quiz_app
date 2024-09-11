@@ -24,6 +24,14 @@ def custom_exception_handler(exc, context):
         elif view.__class__.__name__ == 'login_user':
              response.data = {
                 'message': messsage,
+                "accessToken":"",
+                "refreshToken":"",
+                "userID":-1,
+                "username":"",
+                "password":"",
+                "email":"",
+                "createdAt":"",
+                "lastOnlineAt":"",
                 'status': False,
             }
 

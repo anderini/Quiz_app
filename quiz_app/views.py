@@ -1,10 +1,8 @@
 from django.utils import timezone
 from datetime import timedelta
-from django.shortcuts import get_object_or_404
 from .serializers import UserRegisterSerializer,UserLoginSerializer,ChangePasswordSerializer,PasswordResetRequestSerializer,PasswordResetSerializer,DeleteUserSerializer
 from rest_framework.response import Response
-from rest_framework.decorators import api_view,authentication_classes,permission_classes
-from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from .utils import generate_otp,send_email
@@ -12,12 +10,10 @@ from .models.otp import otp_class
 from .models.user import User
 from .models.reset_password import request_reset_password_class
 from django.contrib.auth import authenticate
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from rest_framework.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 # Create your views here.
@@ -50,10 +46,30 @@ def login_user(request):
     if serializer.is_valid(raise_exception=True):
         user = authenticate(username=serializer.validated_data.get('username'),password=serializer.validated_data.get('password'))
         if not user:
-            return Response({"status":False,"message":"Kullanıcı Adı veya Şifre Yanlış."})
+            return Response({
+                "message":"Kullanıcı Adı veya Şifre Yanlış.",
+                "accessToken":"",
+                "refreshToken":"",
+                "userID":-1,
+                "username":"",
+                "password":"",
+                "email":"",
+                "createdAt":"",
+                "lastOnlineAt":"",
+                'status': False,})
         else:
             if not getattr(user, 'is_verified', False):
-                return Response({"status":False,"message":"Onaylanmamış Email Adresi."})
+                return Response({
+                "message":"Onaylanmamış Email Adresi.",
+                "accessToken":"",
+                "refreshToken":"",
+                "userID":-1,
+                "username":"",
+                "password":"",
+                "email":"",
+                "createdAt":"",
+                "lastOnlineAt":"",
+                'status': False,})
             else:
                 token=user.tokens()
                 return Response({
@@ -65,6 +81,7 @@ def login_user(request):
                     "email":user.email,
                     "createdAt":user.createdAt,
                     "lastOnlineAt":user.lastOnlineAt,
+                    "status":True
                 })
     
 @api_view(['POST'])
