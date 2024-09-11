@@ -47,7 +47,6 @@ def login_user(request):
         user = authenticate(username=serializer.validated_data.get('username'),password=serializer.validated_data.get('password'))
         if not user:
             return Response({
-                "message":"Kullanıcı Adı veya Şifre Yanlış.",
                 "accessToken":"",
                 "refreshToken":"",
                 "userID":-1,
@@ -56,11 +55,10 @@ def login_user(request):
                 "email":"",
                 "createdAt":"",
                 "lastOnlineAt":"",
-                'status': False,})
+                })
         else:
             if not getattr(user, 'is_verified', False):
                 return Response({
-                "message":"Onaylanmamış Email Adresi.",
                 "accessToken":"",
                 "refreshToken":"",
                 "userID":-1,
@@ -69,7 +67,7 @@ def login_user(request):
                 "email":"",
                 "createdAt":"",
                 "lastOnlineAt":"",
-                'status': False,})
+                })
             else:
                 token=user.tokens()
                 return Response({
