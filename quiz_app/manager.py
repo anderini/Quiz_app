@@ -17,12 +17,12 @@ class UserManager(BaseUserManager):
         return user
     def create_superuser(self,username,email,password,**extra_fields):
         extra_fields.setdefault("is_superuser", True)
-        extra_fields.setdefault("is_validate", True)
+        extra_fields.setdefault("is_verified", True)
         extra_fields.setdefault("is_staff", True)
         if extra_fields.get("is_superuser") is not True:
             raise ValueError(_("Superuser must have is_superuser=True."))
-        if extra_fields.get("is_validate") is not True:
-            raise ValueError(_("Validate must have is_validate=True."))
+        if extra_fields.get("is_verified") is not True:
+            raise ValueError(_("Verified must have is_verified=True."))
         if extra_fields.get("is_staff") is not True:
             raise ValueError(_("Staff must have is_staff=True."))
         self.create_user(username,email,password,**extra_fields)

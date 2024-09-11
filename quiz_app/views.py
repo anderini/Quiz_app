@@ -9,6 +9,7 @@ from .utils import generate_otp,send_email
 from .models.otp import otp_class
 from .models.user import User
 from .models.reset_password import request_reset_password_class
+from .models.categories import categories
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -171,3 +172,12 @@ def delete_user(request):
         return Response(status=status.HTTP_200_OK)
     else:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_categories(request):
+    category_list = []
+    category_class=categories.objects.all().values()
+    for category_object in category_class:
+        category_list.append(category_object)
+    return Response(category_list)
